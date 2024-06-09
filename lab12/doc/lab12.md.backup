@@ -1,0 +1,203 @@
+# Лабораторна робота №12. Строки (Null-terminated C Strings)
+
+## 1 Вимоги
+
+### 1.1 Розробник
+
+* Рекало Іван Сергійович;
+* студент групи КН923г;
+* 09-чер-2024.
+
+### 1.2 Завдання
+
+Визначити, скільки у тексті голосних і скільки приголосних букв. Вивести на екран процентне співвідношення.
+
+## 2 Опис програми
+
+### 2.1 Функціональне призначення
+
+Програма призначена для аналізу текстового файлу, підрахунку кількості приголосних та голосних букв і обчислення процентного співвідношення приголосних і голосних букв у тексті.
+
+### 2.2 Опис логічної структури
+
+#### Функція для читання тексту з файлу
+```C
+void readFile(const char *filename, char *buffer, size_t size)
+```
+
+*Призначення*: зчитує текст з файлу у буфер.
+
+*Опис роботи*: функція відкриває файл, зчитує його вміст у буфер і закриває файл.
+
+**Аргументи**:
+
+- filename - назва файлу для читання;
+- buffer - буфер для зберігання тексту;
+- size - розмір буфера.
+
+#### Функція для підрахунку голосних і приголосних букв
+c
+```C
+void countVowelsAndConsonants(const char *text, int *vowels, int *consonants)
+```
+
+*Призначення*: підраховує кількість голосних і приголосних букв у тексті.
+
+*Опис роботи*: функція перебирає кожен символ тексту і перевіряє, чи є він голосною чи приголосною буквою.
+
+**Аргументи**:
+
+- text - текст для аналізу;
+- vowels - лічильник голосних;
+- consonants - лічильник приголосних.
+
+#### Функція для виведення результату
+```C
+void printResult(int vowels, int consonants)
+```
+
+*Призначення*: виводить кількість приголосних і голосних букв та їх процентне співвідношення.
+
+*Опис роботи*: функція обчислює процентне співвідношення приголосних і голосних букв та виводить результат на екран.
+
+**Аргументи**:
+
+- vowels - кількість голосних;
+- consonants - кількість приголосних.
+
+#### Головна функція
+```C
+int main()
+```
+
+*Призначення*: основна функція, яка викликається при запуску програми.
+
+*Опис роботи*: Зчитує текст з файлу. Підраховує кількість голосних і приголосних букв. Виводить результат на екран.
+
+#### Структура проекту
+```
+                 └── lab12/
+                     ├── Makefile
+                     ├── Doxyfile
+                     ├── README.md
+                     ├── assets
+                         └── input.txt
+                     ├── doc
+                         └── lab12.md
+                     ├── src
+                         ├── lib.c
+                         ├── lib.h
+                         ├── main.c
+                     └── test
+                         └── test.c
+```
+
+### 2.3 Важливі фрагменти програми
+
+#### Читання тексту з файлу
+```C
+void readFile(const char *filename, char *buffer, size_t size) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Не вдалося відкрити файл");
+        exit(EXIT_FAILURE);
+    }
+    fread(buffer, sizeof(char), size, file);
+    buffer[size - 1] = '\0'; // Забезпечення завершення рядка
+    fclose(file);
+}
+```
+
+#### Підрахунок голосних і приголосних букв
+```C
+void countVowelsAndConsonants(const char *text, int *vowels, int *consonants) {
+    const char *vowelChars = "AEIOUYaeiouy";
+    const char *consonantChars = "BCDFGHJKLMNPQRSTVWXZbcdfghjklmnpqrstvwxz";
+
+    while (*text) {
+        if (strchr(vowelChars, *text)) {
+            (*vowels)++;
+        } else if (strchr(consonantChars, *text)) {
+            (*consonants)++;
+        }
+        text++;
+    }
+}
+```
+
+#### Виведення результату
+```C
+void printResult(int vowels, int consonants) {
+    int total = vowels + consonants;
+    if (total == 0) {
+        printf("Текст не містить голосних або приголосних букв.\n");
+        return;
+    }
+    float vowelPercentage = (float)vowels / total * 100;
+    float consonantPercentage = (float)consonants / total * 100;
+    printf("Голосних: %d (%.2f%%)\n", vowels, vowelPercentage);
+    printf("Приголосних: %d (%.2f%%)\n", consonants, consonantPercentage);
+}
+```
+
+#### Головна функція
+```C
+int main() {
+    char text[5000];
+    int vowels = 0, consonants = 0;
+
+    readFile("assets/input.txt", text, sizeof(text));
+    countVowelsAndConsonants(text, &vowels, &consonants);
+    printResult(vowels, consonants);
+    return 0;
+}
+```
+
+#### Перевірка відсутності витоків пам'яті за допомогою утиліти valgrind
+```C
+ ./main
+==25947== Memcheck, a memory error detector
+==25947== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==25947== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==25947== Command: ./main
+==25947== 
+Голосних: 923 (39.63%)
+Приголосних: 1406 (60.37%)
+==25947== 
+==25947== HEAP SUMMARY:
+==25947==     in use at exit: 0 bytes in 0 blocks
+==25947==   total heap usage: 1 allocs, 1 frees, 472 bytes allocated
+==25947== 
+==25947== All heap blocks were freed -- no leaks are possible
+==25947== 
+==25947== For lists of detected and suppressed errors, rerun with: -s
+==25947== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+```
+
+#### Модульний тест
+```C
+./dist/test.bin
+Тест readFile:
+Basic knowledge of programming can be applied in any field and in many professions: science (hello, R and Python), marketing, support service in IT companies, and many other professions. Top managers and startup founders also enroll in programming courses to better understand the process of creating digital products and services. Every year, programming will become an important skill in more and more professions. So whether you're dreaming of restarting your career and moving into IT, or planning to do what you're doing now, you should still try your hand at writing code and understanding the basics of programming. To do this, you don't need to go to university and spend years acquiring an IT specialty. There are several ways to do it yourself, online and at a convenient time. Let's consider what options you have, depending on the goals you set for yourself in learning programming. Method one: sign up for programming courses for "green" beginners. Full-fledged programming courses, with a program that starts with the basics and ends with writing real projects, is a good option for those who want to take programming seriously and make it their profession. According to research from Stackoverflow (the largest programming community in the world), almost half (46.6%) of those who learn programming do so in online courses with certification. Method two: go to intensive training at "bootcamps". According to StackOverflow statistics, this learning format is chosen by 10.8% of those who learn programming. Bootcamp, or in our case, coding bootcamp, is an intensive training program that promises to make you a programmer in a much shorter period of time - from 3 to 6 months. Method three: individual classes with a mentor. There are many advantages: from a schedule of classes clearly adjusted to your lifestyle, to a personal approach to learning. According to developers engaged in private mentoring, half a year of classes in a one-on-one format is enough to learn programming. Method four: combining free and paid sources. Perhaps, in independent learning of programming, this method is one of the most common. Especially among those students who are not limited by time in studying and do not set themselves the goal of getting their first job as a programmer within a year. The fifth method: training with short video courses. In a post-pandemic world, about 6 out of 10 people are using educational videos and video courses to learn new skills. This is facilitated by the convenience of consuming video content and a huge selection of such courses in any specialty. The companies with the largest capitalization in the field of online education are just such "marketplaces" of video courses about anything, such as Coursera, Udemy and others. Of course, the amount of their profit is not directly proportional to the success and quality of knowledge of their users.
+
+Тест countVowelsAndConsonants:
+Приголосних: 3, Голосних: 6
+
+Тест printResult:
+Голосних: 29 (27.10%)
+Приголосних: 78 (72.90%)
+
+Тестування завершено.
+```
+
+## 3 Варіанти використання
+
+#### Програма може бути використана для:
+
+1. Підрахунку кількості голосних і приголосних букв.
+2. Роботи з файлами та їх змістом.
+
+## Висновки
+
+Лабораторна робота навчила нас обробляти текст, зчитувати дані з файлів, підраховувати кількість приголосних і голосних букв та обчислювати їх процентне співвідношення.
+
