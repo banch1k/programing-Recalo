@@ -1,0 +1,5 @@
+3
+1 111 50 1 2 needs_repair так 2 так 10
+0 7 80 2 3 does_not_need_repair ні 1 ні 0
+1 C3 200 3 3 needs_cosmetic_repair так 3 ні 5
+

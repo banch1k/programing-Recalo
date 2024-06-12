@@ -1,0 +1,232 @@
+# Лабораторна робота №14. Структуровані типи даних
+
+## 1 Вимоги
+
+### 1.1 Розробник
+
+* Рекало Іван Сергійович;
+* студент групи КН923г;
+* 11-чер-2024.
+
+### 1.2 Завдання
+
+Розробити програму для обробки даних про аудиторії, включаючи їх читання з файлу, виведення на екран, пошук великих аудиторій, сортування аудиторій за заданим критерієм.
+
+## 2 Опис програми
+
+### 2.1 Функціональне призначення
+
+Програма призначена для обробки даних про аудиторії. Вона дозволяє зчитувати дані з файлу, виводити їх на екран, знаходити великі аудиторії (вмістимість більше 150 місць), а також сортувати аудиторії за заданим критерієм.
+
+### 2.2 Опис логічної структури
+
+#### Структура Location
+```C
+typedef struct {
+    int building; // Номер будівлі
+    int floor; // Номер поверху
+} Location;
+```
+
+*Призначення*: Зберігає інформацію про місце розташування аудиторії.
+
+#### Структура Audience
+```C
+typedef struct {
+    int occupied; // Чи зайнята аудиторія (так/ні)
+    char name[10]; // Назва аудиторії
+    int capacity; // Вмістимість аудиторії
+    Location location; // Місце розташування аудиторії
+    char condition[30]; // Стан аудиторії ('needs_repair', 'needs_cosmetic_repair', 'does_not_need_repair')
+    char has_projector[3]; // Наявність проектору (так/ні)
+    int board_count; // Кількість дошок
+    int computer_count; // Кількість комп'ютерів
+    char has_lab_assistant[3]; // Наявність лаборанта (так/ні)
+} Audience;
+```
+
+*Призначення*: Зберігає інформацію про аудиторію.
+
+#### Функція read_audiences
+```C
+void read_audiences(const char* filename, Audience** audiences, int* count);
+```
+
+*Призначення*: Зчитує дані про аудиторії з файлу.
+
+*Опис роботи*: Відкриває файл для читання. Зчитує кількість аудиторій. Виділяє пам'ять для зберігання даних про аудиторії. Зчитує дані про кожну аудиторію та зберігає їх у масиві.
+
+*Аргументи*:
+
+- filename - назва файлу, з якого зчитуються дані.
+- audiences - вказівник на масив аудиторій.
+- count - вказівник на змінну для зберігання кількості аудиторій.
+
+#### Функція write_audiences
+```C
+void write_audiences(const char* filename, Audience* audiences, int count);
+```
+
+*Призначення*: Записує дані про аудиторії у файл.
+
+*Опис роботи*: Відкриває файл для запису. Записує кількість аудиторій. Записує дані про кожну аудиторію з масиву у файл.
+
+#### Функція print_audiences
+```C
+void print_audiences(Audience* audiences, int count);
+```
+
+*Призначення*: Виводить дані про аудиторії на екран.
+
+*Опис роботи*: Проходить по всьому масиву аудиторій. Виводить дані про кожну аудиторію на екран.
+
+#### Функція find_large_audiences
+```C
+Audience* find_large_audiences(Audience* audiences, int count, int* result_count);
+```
+
+*Призначення*: Знаходить аудиторії з вмістимістю більше 150 місць.
+
+*Опис роботи*: Проходить по всьому масиву аудиторій. Перевіряє вмістимість кожної аудиторії. Зберігає аудиторії з вмістимістю більше 150 у новий масив. Повертає новий масив та кількість знайдених аудиторій.
+
+*Аргументи*:
+
+- result_count - вказівник на змінну для зберігання кількості великих аудиторій.
+
+#### Функція sort_audiences
+```C
+void sort_audiences(Audience* audiences, int count, int (*compare)(const Audience*, const Audience*));
+```
+
+*Призначення*: Сортує масив аудиторій за заданим критерієм.
+
+*Опис роботи*: Використовує стандартну функцію qsort для сортування. Приймає вказівник на функцію порівняння, яка визначає критерій сортування.
+
+*Аргументи*:
+
+- compare - вказівник на функцію порівняння.
+
+#### Структура проекту
+```
+                 └── lab14/
+                     ├── Makefile
+                     ├── Doxyfile
+                     ├── README.md
+                     ├── assets
+                         └── input.txt
+                     ├── doc
+                         └── lab14.md
+                     ├── src
+                         ├── lib.c
+                         ├── lib.h
+                         ├── main.c
+                     └── test
+                         └── test.c
+```
+
+### 2.3 Важливі фрагменти програми
+
+#### Читання даних про аудиторії з файлу
+```C
+void read_audiences(const char* filename, Audience** audiences, int* count) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Не вдається відкрити файл");
+        exit(1);
+    }
+fscanf(file, "%d", count);
+    *audiences = (Audience*)malloc(sizeof(Audience) * (size_t)(*count));
+    for (int i = 0; i < *count; ++i) {
+        fscanf(file, "%d %s %d %d %d %s %s %d %s %d", 
+            &(*audiences)[i].occupied, 
+            (*audiences)[i].name, 
+            &(*audiences)[i].capacity, 
+            &(*audiences)[i].location.building, 
+            &(*audiences)[i].location.floor, 
+            (*audiences)[i].condition,
+            (*audiences)[i].has_projector,
+            &(*audiences)[i].board_count,
+            (*audiences)[i].has_lab_assistant,
+            &(*audiences)[i].computer_count);
+    }
+
+    fclose(file);
+}
+```
+
+#### Виведення даних про аудиторії на екран
+```C
+void print_audiences(Audience* audiences, int count) {
+    for (int i = 0; i < count; ++i) {
+        printf("Зайнятість: %s, Назва: %s, Вмістимість: %d, Розташування: %d-%d, Стан: %s, Проектор: %s, Кількість дошок: %d, Кількість комп'ютерів: %d, Лаборант: %s\n",
+            audiences[i].occupied ? "так" : "ні",
+            audiences[i].name,
+            audiences[i].capacity,
+            audiences[i].location.building,
+            audiences[i].location.floor,
+            audiences[i].condition,
+            audiences[i].has_projector,
+            audiences[i].board_count,
+            audiences[i].computer_count,
+            audiences[i].has_lab_assistant);
+    }
+}
+```
+
+#### Пошук великих аудиторій
+```C
+Audience* find_large_audiences(Audience* audiences, int count, int* result_count) {
+    *result_count = 0;
+    for (int i = 0; i < count; ++i) {
+        if (audiences[i].capacity > 150) {
+            (*result_count)++;
+        }
+    }
+    Audience* large_audiences = (Audience*)malloc(sizeof(Audience) * (size_t)(*result_count));
+    int index = 0;
+    for (int i = 0; i < count; ++i) {
+        if (audiences[i].capacity > 150) {
+            large_audiences[index++] = audiences[i];
+        }
+    }
+    return large_audiences;
+}
+```
+
+#### Перевірка відсутності витоків пам'яті за допомогою утиліти valgrind
+```C
+==10880== Memcheck, a memory error detector
+==10880== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==10880== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==10880== Command: ./main
+==10880== 
+Використання: ./main <ім'я_вхідного_файлу>
+==10880== 
+==10880== HEAP SUMMARY:
+==10880==     in use at exit: 0 bytes in 0 blocks
+==10880==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==10880== 
+==10880== All heap blocks were freed -- no leaks are possible
+==10880== 
+==10880== For lists of detected and suppressed errors, rerun with: -s
+==10880== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+```
+
+#### Модульний тест
+```C
+./dist/test.bin
+test.bin: test/test.c:39: void test_read_audiences(): Assertion `strcmp(audiences[0].has_projector, "так") == 0' failed.
+```
+
+## 3 Варіанти використання
+
+#### Програма може бути використана для:
+
+1. Обліку інструментів аудиторій та навчального закладу
+2. Складання розкладу
+3. Аналізу стану аудиторій.
+4. Оцінки можливостей окремої аудиторії 
+
+## Висновки
+
+Лабораторна робота навчила нас створювати програму, яка дозволяє ефективно обробляти дані про аудиторії, включаючи їх читання та запис. Вона є корисної для створення раціонального фреймворку стосовно аудиторій у навчальному закладі.
